@@ -1,0 +1,186 @@
+/* MongoDB Color Variables */
+:root {
+    --mongodb-green: #00ED64;
+    --mongodb-dark-green: #00c853;
+    --mongodb-text: #13AA52;
+    --mongodb-dark: #001E2B;
+}
+
+/* General body and layout styles */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Footer styling */
+footer {
+    margin-top: auto;
+    background-color: var(--mongodb-green);
+    color: var(--mongodb-dark);
+    padding: 1.5rem 0;
+    font-weight: 500;
+}
+
+/* Card styling */
+.card {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: all 0.3s;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+/* Card hover effect */
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+}
+
+/* Table hover effect */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 30, 43, 0.05);
+}
+
+/* Button styling */
+.btn-primary {
+    background-color: var(--mongodb-dark);
+    border-color: var(--mongodb-dark);
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: #003145 !important;
+    border-color: #003145 !important;
+}
+
+.btn-outline-primary {
+    color: var(--mongodb-dark);
+    border-color: var(--mongodb-dark);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--mongodb-dark);
+    border-color: var(--mongodb-dark);
+}
+
+/* Jumbotron styling */
+.jumbotron {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: all 0.3s;
+    padding: 3rem;
+    background-color: #e9ecef;
+}
+
+/* Navbar styling */
+.navbar {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: var(--mongodb-dark) !important;
+}
+
+.navbar-brand i {
+    color: #ffffff;
+}
+
+.navbar-logo {
+    height: 30px;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: var(--mongodb-green);
+}
+
+.navbar-brand {
+    font-family: 'Merriweather', serif;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* Card header styling */
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    padding: 1.5rem;
+    background-color: var(--mongodb-text);
+    color: white;
+}
+
+/* Card body styling */
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Custom animation for alerts */
+.alert {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Styles for auth-not-required links */
+.auth-not-required a {
+    text-decoration: none;
+    color: var(--mongodb-text);
+}
+
+.auth-not-required a:hover {
+    text-decoration: underline;
+}
+
+/* Welcome Message */
+#welcomeMessage {
+    font-size: 1.5rem;
+    color: var(--mongodb-dark);
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+/* Feature icons */
+.feature-icon {
+    color: var(--mongodb-text);
+}
+
+/* Country code dropdown */
+#contactCountryCode {
+    width: auto;
+    flex: 0 0 100px;
+    max-width: 120px;
+}
+
+/* Table headers */
+.table thead th {
+    background-color: rgba(0, 237, 100, 0.1);
+    border-bottom: 2px solid var(--mongodb-text);
+}
+
+/* Button in navbar */
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Modal header */
+.modal-header.bg-primary {
+    background-color: var(--mongodb-text) !important;
+}
+
+.modal-header.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+/* Form focus */
+.form-control:focus {
+    border-color: var(--mongodb-text);
+    box-shadow: 0 0 0 0.25rem rgba(19, 170, 82, 0.25);
+}

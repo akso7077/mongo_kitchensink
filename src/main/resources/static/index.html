@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB Kitchen Sink App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* General body and layout styles */
+        :root {
+            --mongodb-green: #00ED64;
+            --mongodb-dark-green: #00c853;
+            --mongodb-text: #13AA52;
+            --mongodb-dark: #001E2B;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Footer styling */
+        footer {
+            margin-top: auto;
+            background-color: var(--mongodb-green);
+            color: var(--mongodb-dark);
+            padding: 1.5rem 0;
+            font-weight: 500;
+        }
+
+        /* Card styling */
+        .card {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            transition: all 0.3s;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Card hover effect */
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+        }
+
+        /* Table hover effect */
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 30, 43, 0.05);
+        }
+
+        /* Button styling */
+        .btn-primary {
+            background-color: var(--mongodb-dark);
+            border-color: var(--mongodb-dark);
+        }
+
+        .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+            background-color: #003145 !important;
+            border-color: #003145 !important;
+        }
+
+        .btn-outline-primary {
+            color: var(--mongodb-dark);
+            border-color: var(--mongodb-dark);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--mongodb-dark);
+            border-color: var(--mongodb-dark);
+        }
+
+        /* Jumbotron styling */
+        .jumbotron {
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            transition: all 0.3s;
+            padding: 3rem;
+            background-color: #e9ecef;
+        }
+
+        /* Navbar styling */
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--mongodb-green) !important;
+        }
+
+        .navbar-brand i {
+            color: var(--mongodb-dark);
+        }
+
+        .navbar-logo {
+            height: 40px;
+            vertical-align: middle;
+            margin-right: 2px;
+        }
+
+        .navbar-dark .navbar-nav .nav-link {
+            color: var(--mongodb-dark);
+            font-weight: 500;
+        }
+
+        .navbar-dark .navbar-nav .nav-link:hover {
+            color: #000;
+        }
+
+        .navbar-brand {
+            font-family: 'Merriweather', serif;
+            font-weight: 700;
+            color: var(--mongodb-dark);
+        }
+
+        /* Card header styling */
+        .card-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            padding: 1.5rem;
+            background-color: var(--mongodb-dark);
+            color: white;
+        }
+
+        /* Card body styling */
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Custom animation for alerts */
+        .alert {
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Styles for auth-not-required links */
+        .auth-not-required a {
+            text-decoration: none;
+            color: var(--mongodb-dark);
+            font-weight: 500;
+        }
+
+        .auth-not-required a:hover {
+            text-decoration: underline;
+        }
+
+        /* Welcome Message */
+        #welcomeMessage {
+            font-size: 1.8rem;
+            color: #FFFFFF;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        /* Feature icons */
+        .feature-icon {
+            color: var(--mongodb-dark);
+        }
+
+        /* Country code dropdown */
+        #contactCountryCode {
+            width: auto;
+            flex: 0 0 100px;
+            max-width: 120px;
+        }
+
+        /* Table headers */
+        .table thead th {
+            background-color: rgba(0, 30, 43, 0.05);
+            border-bottom: 2px solid var(--mongodb-dark);
+        }
+
+        /* Button in navbar */
+        .navbar-toggler {
+            border-color: var(--mongodb-dark);
+            color: var(--mongodb-dark);
+        }
+
+        /* Modal header */
+        .modal-header.bg-primary {
+            background-color: var(--mongodb-dark) !important;
+        }
+
+        .modal-header.bg-danger {
+            background-color: #dc3545 !important;
+        }
+
+        /* Form focus */
+        .form-control:focus {
+            border-color: var(--mongodb-dark);
+            box-shadow: 0 0 0 0.25rem rgba(0, 30, 43, 0.25);
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <svg width="120" height="36" viewBox="0 0 120 36" class="navbar-logo">
+                <img src="images/mongodb.svg" class="navbar-logo me-2">MongoDB
+
+            </svg>
+            KitchenSink
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item auth-required admin-only" style="display: none;">
+                    <a class="nav-link" href="#" id="adminLink">
+                        <i class="fas fa-cog me-1"></i>Admin
+                    </a>
+                </li>
+                <li class="nav-item auth-required" style="display: none;">
+                    <a class="nav-link" href="#" id="kitchensinkLink">
+                        <i class="fas fa-home me-1"></i>Kitchen Sink
+                    </a>
+                </li>
+                <li class="nav-item auth-required" style="display: none;">
+                    <a class="nav-link" href="#" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                </li>
+                <li class="nav-item auth-not-required">
+                    <a class="nav-link" href="#" id="loginLink">
+                        <i class="fas fa-sign-in-alt me-1"></i>Login
+                    </a>
+                </li>
+                <li class="nav-item auth-not-required">
+                    <a class="nav-link" href="#" id="registerLink">
+                        <i class="fas fa-user-plus me-1"></i>Register
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Content Sections -->
+<div class="container mt-5">
+    <!-- Home Section (Not Logged In) -->
+    <div id="homeSection" class="auth-not-required">
+        <div class="jumbotron text-center p-5 bg-light rounded">
+            <h1 class="display-4">Welcome to Kitchen Sink</h1>
+            <p class="lead">A comprehensive web application showcasing Spring Boot, MongoDB, JWT Security and more.</p>
+            <hr class="my-4">
+            <p>Please login or register to get started.</p>
+            <div class="mt-4">
+                <button class="btn btn-primary btn-lg me-2" id="homeLoginBtn">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </button>
+                <button class="btn btn-outline-primary btn-lg" id="homeRegisterBtn">
+                    <i class="fas fa-user-plus me-2"></i>Register
+                </button>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card text-center mb-4">
+                    <div class="card-body">
+                        <i class="fas fa-shield-alt fa-3x feature-icon mb-3"></i>
+                        <h5 class="card-title">Secure Authentication</h5>
+                        <p class="card-text">JWT-based authentication with proper role management for users and admins.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center mb-4">
+                    <div class="card-body">
+                        <i class="fas fa-database fa-3x feature-icon mb-3"></i>
+                        <h5 class="card-title">MongoDB Integration</h5>
+                        <p class="card-text">NoSQL database for flexible and scalable data storage.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center mb-4">
+                    <div class="card-body">
+                        <i class="fas fa-code fa-3x feature-icon mb-3"></i>
+                        <h5 class="card-title">REST API</h5>
+                        <p class="card-text">Well-documented API with Swagger integration and robust validation.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="auth-not-required" style="display: none;">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h4 class="mb-0"><i class="fas fa-sign-in-alt me-2"></i>Login</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="loginForm">
+                            <div class="alert alert-danger" id="loginError" style="display: none;"></div>
+
+                            <div class="mb-3">
+                                <label for="loginUsername" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="loginUsername" required>
+                                <div class="invalid-feedback">Please enter your username.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="loginPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="loginPassword" required>
+                                <div class="invalid-feedback">Please enter your password.</div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <p>Don't have an account? <a href="#" id="goToRegisterLink">Register now</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Section -->
+    <div id="registerSection" class="auth-not-required" style="display: none;">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Register</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="registerForm">
+                            <div class="alert alert-danger" id="registerError" style="display: none;"></div>
+                            <div class="alert alert-success" id="registerSuccess" style="display: none;">
+                                Registration successful! You can now <a href="#" id="goToLoginAfterRegister">login</a>.
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="registerUsername" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="registerUsername">
+                                <div class="invalid-feedback">
+                                    Username must be between 8 and 30 characters and alphanumeric.
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="registerEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="registerEmail" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid email address.
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="registerPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="registerPassword"
+                                       required minlength="8">
+                                <div class="invalid-feedback">
+                                    Password must be at least 8 characters long and meet complexity requirements.
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" id="registerConfirmPassword" required>
+                                <div class="invalid-feedback">
+                                    Passwords do not match.
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-user-plus me-2"></i>Register
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <p>Already have an account? <a href="#" id="goToLoginLink">Login</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kitchen Sink Section (Main Page) -->
+    <div id="kitchensinkSection" class="auth-required" style="display: none;">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0"><p id="welcomeMessage" class="lead"></p></h5>
+                </div>
+            </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-address-book me-2 feature-icon"></i>Contacts</h2>
+            <button class="btn btn-primary" id="addContactBtn">
+                <i class="fas fa-plus me-2"></i>Add Contact
+            </button>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">My Contacts</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info" id="noContactsMessage" style="display: none;">
+                    <i class="fas fa-info-circle me-2"></i>You haven't added any contacts yet.
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover" id="contactsTable">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone Number</th>
+                            <th>Created Date</th>
+                        </tr>
+                        </thead>
+                        <tbody id="contactsList">
+                        <!-- Contacts will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Section -->
+    <div id="adminSection" class="auth-required admin-only" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-cog me-2 feature-icon"></i>Admin Dashboard</h2>
+        </div>
+
+        <!-- Users Management -->
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">User Management</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="usersTable">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Roles</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="usersList">
+                        <tr><td colspan="6" class="text-center">Loading users...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contacts Management -->
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Contact Management</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="adminContactsTable">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone Number</th>
+                            <th>Created By</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="adminContactsList">
+                        <tr><td colspan="6" class="text-center">Loading contacts...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Contact Modal -->
+<div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalTitle" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="contactModalTitle">Edit Item</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="contactForm" data-type="">
+                    <input type="hidden" id="contactId">
+
+                    <div class="mb-3">
+                        <label for="contactName" class="form-label">Name / Username</label>
+                        <input type="text" class="form-control" id="contactName" required>
+                        <div class="invalid-feedback">
+                            Please provide a valid name (2-100 chars) or username (3-50 chars).
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="contactEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="contactEmail" required>
+                        <div class="invalid-feedback">
+                            Please enter a valid email address.
+                        </div>
+                    </div>
+
+                    <!-- Phone field group -->
+                    <div class="mb-3" id="contactPhoneGroup" style="display: none;">
+                        <label for="contactPhone" class="form-label">Phone Number</label>
+                        <div class="input-group">
+                            <select class="form-select" id="contactCountryCode">
+                                <option value="">-- Select Country --</option>
+                                <!-- Add data attributes for validation rules -->
+                                <option value="+91" data-regex="^[6789]\\d{9}$" data-length="10">🇮🇳</option>
+                                <option value="+1" data-regex="^\d{10}$" data-length="10">🇺🇸🇨🇦</option>
+                                <option value="+44" data-regex="^7\\d{9}$" data-length="10">🇬🇧</option>
+                                <!-- Add more countries as needed -->
+                            </select>
+                            <input type="tel" class="form-control" id="contactPhone">
+                            <div class="invalid-feedback" id="contactPhoneInvalidFeedback">
+                                Please enter a valid phone number. <!-- Default message -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="userRolesGroup" style="display: none;">
+                        <label for="userRoleSelect" class="form-label">Role:</label>
+                        <select id="userRoleSelect" class="form-select mb-3">
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveContactBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteModalBody">Are you sure you want to delete this item? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/kitchensink.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
