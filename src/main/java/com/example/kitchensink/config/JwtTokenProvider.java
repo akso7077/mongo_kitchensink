@@ -1,28 +1,26 @@
-// src/main/java/com/example/kitchensink/config/JwtTokenProvider.java
-
 package com.example.kitchensink.config;
 
-import com.example.kitchensink.model.RefreshToken; // Import RefreshToken entity
-import com.example.kitchensink.model.User;         // Import User entity
-import com.example.kitchensink.repository.RefreshTokenRepository; // Import RefreshToken repository
-import com.example.kitchensink.repository.UserRepository; // Import User repository (needed for finding user by username)
+import com.example.kitchensink.model.RefreshToken;
+import com.example.kitchensink.model.User;
+import com.example.kitchensink.repository.RefreshTokenRepository;
+import com.example.kitchensink.repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor; // Add RequiredArgsConstructor for injecting repositories
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.security.core.userdetails.UserDetailsService; // Correct import
+import org.springframework.security.core.userdetails.UserDetailsService;
 
-import javax.crypto.SecretKey; // Updated import for Jakarta EE
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant; // Import Instant
+import java.time.Instant;
 import java.util.Date;
-import java.util.Optional; // Import Optional
-import java.util.UUID; // Import UUID for refresh token string
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -30,21 +28,21 @@ import java.util.stream.Collectors;
  */
 @Component
 @Slf4j
-@RequiredArgsConstructor // Use Lombok to generate constructor for final fields (repositories, userDetailsService)
-public class JwtTokenProvider { // Renaming to TokenProviderService might be better to reflect refresh token logic
+@RequiredArgsConstructor
+public class JwtTokenProvider {
 
     @Value("${app.jwt.secret}")
     private String jwtSecret;
 
     @Value("${app.jwt.expiration}")
-    private int jwtExpirationInMs; // Access token expiration
+    private int jwtExpirationInMs;
 
     @Value("${app.jwt.refresh-expiration}") // Add refresh token expiration property
     private Long refreshTokenExpirationInMs;
 
-    private final RefreshTokenRepository refreshTokenRepository; // Inject the new repository
-    private final UserRepository userRepository; // Inject UserRepository to find user by username
-    private final UserDetailsService userDetailsService; // ===> Injected UserDetailsService <===
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRepository userRepository;
+    private final UserDetailsService userDetailsService;
 
 
     /**
@@ -125,21 +123,19 @@ public class JwtTokenProvider { // Renaming to TokenProviderService might be bet
         Optional<User> userOptional = userRepository.findById(userId);
 
         if (userOptional.isEmpty()) {
-            // This should ideally not happen if called after successful authentication
             throw new RuntimeException("User not found for refresh token creation");
         }
 
         User user = userOptional.get();
 
-        // Clean up existing refresh tokens for the user if you want only one valid at a time
         // This ensures that the user only has one valid refresh token at any given time.
         refreshTokenRepository.deleteByUser(user);
 
 
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);
-        refreshToken.setToken(UUID.randomUUID().toString()); // Use a UUID as the token string
-        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpirationInMs)); // Set expiry
+        refreshToken.setToken(UUID.randomUUID().toString());
+        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpirationInMs));
 
         return refreshTokenRepository.save(refreshToken); // Save to database
     }
@@ -163,17 +159,12 @@ public class JwtTokenProvider { // Renaming to TokenProviderService might be bet
             log.warn("Attempted to use expired refresh token: {}", token);
             // Delete the expired token from DB
             refreshTokenRepository.delete(refreshToken);
-            return Optional.empty(); // Token expired
+            return Optional.empty();
         }
 
-        // Optional: Invalidate the used refresh token immediately after verification for single-use tokens
-        // This prevents token reuse. If you want multi-use until expiry, skip this deletion.
-        // refreshTokenRepository.delete(refreshToken); // Delete the token after successful verification
-
-        return Optional.of(refreshToken); // Token is valid and not expired
+        return Optional.of(refreshToken);
     }
 
-    // You might add a method to delete a refresh token explicitly on logout later
     public void deleteRefreshToken(String token) {
         refreshTokenRepository.findByToken(token).ifPresent(refreshTokenRepository::delete);
     }
@@ -183,27 +174,23 @@ public class JwtTokenProvider { // Renaming to TokenProviderService might be bet
     }
 
 
-    // ===> CORRECTED METHOD <===
     public String generateTokenFromUsername(String username) {
-        // Load user details by username using the injected instance
-        UserDetails userPrincipal = this.userDetailsService.loadUserByUsername(username); // <--- CORRECTED CALL
 
-        // Build the token using user details (similar logic to your existing generateToken method)
-        // This part will depend on how your existing generateToken method builds the JWT claims
-        // You'll need to include userPrincipal.getUsername() and userPrincipal.getAuthorities()
-        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8)); // Get key again here
+        UserDetails userPrincipal = this.userDetailsService.loadUserByUsername(username);
 
-        // Collect roles from authorities (assuming they are GrantedAuthority)
+        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+
+        // Collect roles from authorities
         String authorities = userPrincipal.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority) // Assuming getAuthority() gives the role name string
+                .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
         return Jwts.builder()
-                .setSubject((userPrincipal.getUsername())) // Set the subject to the username
-                .claim("roles", authorities) // Add roles claim (make sure frontend expects comma-separated or List)
+                .setSubject((userPrincipal.getUsername()))
+                .claim("roles", authorities)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationInMs)) // Use your access token expiration
-                .signWith(key, Jwts.SIG.HS256) // Use your signing key and algorithm (using Jwts.SIG as in generateToken)
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationInMs))
+                .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }
 }

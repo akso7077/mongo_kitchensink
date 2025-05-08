@@ -1,5 +1,3 @@
-// src/main/resources/static/js/auth.js
-
 document.addEventListener('DOMContentLoaded', function() {
     // Base API URLs
     const API_BASE_URL = '/api';
@@ -131,10 +129,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let response;
         try {
-            // ===> Make the initial fetch request <===
             response = await fetch(url, { ...options, headers });
 
-            // ===> Check for 401 Unauthorized - This happens if the access token is expired or invalid <===
+            // Check for 401 Unauthorized - This happens if the access token is expired or invalid
             if (response.status === 401 && !retry) {
                 console.warn("[FETCH] Received 401 Unauthorized. Attempting to refresh token...");
                 const refreshToken = getRefreshToken(); // Get the refresh token
@@ -217,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             throw new Error(`Token refresh failed with status ${refreshResponse.status}`);
                         }
 
-                    } catch (refreshFetchError) { // <--- Catch block for the INNER refresh token fetch
+                    } catch (refreshFetchError) {
                         // This catches network errors or exceptions during the fetch call to the refresh endpoint itself
                         console.error("[FETCH] Exception during refresh token fetch attempt:", refreshFetchError);
                          // Since the refresh fetch failed due to an exception, the user's session is likely invalid.
@@ -233,11 +230,9 @@ document.addEventListener('DOMContentLoaded', function() {
                      // Throw an error to signal failure
                     throw new Error("No refresh token available.");
                 }
-                 // If the code reaches here after the 401 block, it means the refresh failed or wasn't attempted.
-                 // The main error handling below will process the original 401 response if no new tokens were obtained.
             }
 
-            // ===> Handle non-OK responses (including the original 401 if refresh failed/was skipped,
+            // Handle non-OK responses (including the original 401 if refresh failed/was skipped,
             //      or any other non-2xx status from the initial or retried request) <===
             if (!response.ok) {
                 console.warn(`[FETCH] Request failed with non-OK status: ${response.status}`);
@@ -337,7 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- Initialize Authentication State on Page Load ---
-    // Call this function after all elements and listeners are set up and shared functions are defined.
     initializeAuth();
 
 
@@ -354,23 +348,21 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("[auth.js] Access token and user info found. User appears authenticated.");
             updateUIForAuthenticatedUser(); // Update UI for logged-in state
 
-            // ===> Add a small delay before showing sections and loading data <===
+            //Adding a small delay before showing sections and loading data
             // This gives other scripts (kitchensink.js, admin.js) a moment to finish their DOMContentLoaded logic
             // and expose their load functions globally.
-            // If timing issues persist, you might need to adjust this delay or revisit script loading/execution order.
             setTimeout(() => {
                 console.log("[auth.js] Delayed initialization logic executing.");
-                // Check user roles to determine which section to show initially
+                // Checking user roles to determine which section to show initially
                 if (user.roles.includes('ROLE_ADMIN')) {
                     console.log("[auth.js] User has ADMIN role. Showing Admin section.");
-                     // Check if the admin load function is globally available before calling
+                     // Checking if the admin load function is globally available before calling
                     if (typeof window.loadAdminData === 'function') {
-                         window.loadAdminData(); // Call function exposed by admin.js
-                         showAdmin(); // Navigate to the admin section
+                         window.loadAdminData(); // Calling function exposed by admin.js
+                         showAdmin(); // Navigating to the admin section
                      } else {
                          console.warn("[auth.js] window.loadAdminData function not available globally after delay. Showing Kitchen Sink fallback.");
-                         // Fallback: if admin load function isn't ready, show kitchen sink
-                         showKitchenSink(); // Use showKitchenSink which also checks its load function
+                         showKitchenSink();
                      }
                 } else { // Assuming any non-admin role gets the standard user view
                     console.log("[auth.js] User has USER role. Showing Kitchen Sink section.");
@@ -398,19 +390,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Updates the visibility of UI elements based on authentication status
     function updateUIForAuthenticatedUser() {
-        // Elements visible only when authenticated
+
         document.querySelectorAll('.auth-required').forEach(elem => { if(elem) elem.style.display = 'block'; });
-        // Elements visible only when NOT authenticated
+
         document.querySelectorAll('.auth-not-required').forEach(elem => { if(elem) elem.style.display = 'none'; });
 
-        // Check for admin role to show admin-specific elements
+
         const user = getCurrentUser();
         if (user && user.roles && Array.isArray(user.roles) && user.roles.includes('ROLE_ADMIN')) {
             document.querySelectorAll('.admin-only').forEach(elem => { if(elem) elem.style.display = 'block'; });
         } else {
             document.querySelectorAll('.admin-only').forEach(elem => { if(elem) elem.style.display = 'none'; });
         }
-         // Update username in navbar
+
          if (navbarUsernameSpan && user) {
              navbarUsernameSpan.textContent = user.username || '';
          }
@@ -646,17 +638,6 @@ async function register() {
         if(emailFeedbackEl) emailFeedbackEl.textContent = ''; // Clear feedback
     }
 
-
-    // Password Validation: Not Blank, Complexity (Special, Capital, Small, Number), Min Length (e.g., 8)
-    // Regex explained:
-    // ^                 - Start of string
-    // (?=.*[A-Z])       - Lookahead: requires at least one uppercase letter
-    // (?=.*[a-z])       - Lookahead: requires at least one lowercase letter
-    // (?=.*\d)          - Lookahead: requires at least one digit (0-9)
-    // (?=.*[\W_])       - Lookahead: requires at least one non-word character (includes common symbols). Use (?=.*[!@#$%^&*().,_+-=|]) for specific symbols. Added _ as \W doesn't include it.
-    // .                 - Match any character (except newline)
-    // {8,}              - Match the previous character (.) 8 or more times (minimum length 8)
-    // $                 - End of string
     const passwordComplexityRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/; // Adjust minimum length {8,} as needed
 
     if (!password) {
@@ -717,14 +698,9 @@ async function register() {
              const errorData = await errorResponseClone.json().catch(() => null); // Try parsing as JSON
 
              if (errorData && typeof errorData === 'object') {
-                 // ===> Backend returned a JSON object (likely validation errors or custom API errors) <===
+                 //Backend returned a JSON object (likely validation errors or custom API errors)
                  console.warn("[auth.js] Backend returned JSON error data:", errorData);
 
-                 // Check if the error data is the validation error map (has keys like field names)
-                 // Based on your GlobalExceptionHandler, MethodArgumentNotValidException returns a Map<String, String>
-                 // which is a plain JSON object like {"fieldName": "errorMessage"}.
-                 // Your BadRequestException returns an ErrorResponse DTO with timestamp, status, etc.
-                 // We check if it looks like the validation error map by checking for lack of common ErrorResponse fields.
                  if (!errorData.timestamp && !errorData.status && Object.keys(errorData).length > 0) {
                      console.log("[auth.js] Processing backend validation errors.");
                      // ===> Process the backend validation error map <===
@@ -735,10 +711,6 @@ async function register() {
                              const errorMessage = errorData[fieldName];
                              console.log(`[auth.js] Backend field error for ${fieldName}: ${errorMessage}`);
 
-                             // Find the corresponding input element and its next sibling (feedback) by field name
-                             // This requires consistent naming conventions in your HTML IDs.
-                             // Example: If backend returns {"username": "..."} and your input ID is "registerUsername",
-                             // and feedback ID is "usernameFeedback".
                              const inputElement = document.getElementById('register' + fieldName.charAt(0).toUpperCase() + fieldName.slice(1)); // Attempts to build ID like registerUsername
                              // Fallback if ID building fails or is different
                              let feedbackElement = null;
@@ -793,23 +765,18 @@ async function register() {
              registerSuccessEl.textContent = data.message || 'Registration successful! You can now log in.';
              registerSuccessEl.style.display = 'block';
          }
-         // Clear any lingering validation classes/feedback on success
+
          clearRegisterFormValidation();
 
-         // Optional: redirect to login page automatically after a delay
-         // setTimeout(() => { showLogin(); }, 3000); // Redirect after 3 seconds
+
 
     } catch (error) {
-        // This catch block handles:
-        // - Network errors during the fetch call.
-        // - Errors explicitly thrown from the !response.ok block above (including structured errors).
+
         console.error("[auth.js] Registration failed:", error);
         // Display a general error message using the message from the thrown error
         if(registerErrorEl) { registerErrorEl.textContent = 'Registration failed: ' + error.message; registerErrorEl.style.display = 'block'; }
 
-        // Note: For validation errors handled by the !response.ok block,
-        // the field-specific feedback is already displayed there, and the function returns.
-        // This catch block displays a general message for other types of errors (network, API error response not handled as validation map).
+
     }
 }
 function clearRegisterFormValidation() {
@@ -839,24 +806,21 @@ function clearRegisterFormValidation() {
         console.log("[auth.js] Attempting logout.");
         // Call the shared logoutAndRedirect helper which handles backend call and frontend cleanup
         logoutAndRedirect();
-        // Note: logoutAndRedirect is async, but we don't necessarily need to await it here
-        // as frontend state is updated immediately and the backend call is best-effort on logout.
     }
 
 
-    // --- Expose Shared Functions to Global Scope ---
+    // --- EXPOSING Shared Functions to Global Scope ---
     // These functions are defined and used within auth.js, but are needed by other scripts
     // like admin.js and kitchensink.js to perform authenticated actions or get user info.
     if (typeof window !== 'undefined') { // Check if running in a browser environment
         window.getAccessToken = getAccessToken;
         window.getRefreshToken = getRefreshToken;
-        window.setTokens = setTokens; // Other scripts likely won't call this, but good to have
-        window.removeTokens = removeTokens; // Other scripts likely won't call this directly
+        window.setTokens = setTokens;
+        window.removeTokens = removeTokens;
         window.getCurrentUser = getCurrentUser;
-        window.setCurrentUser = setCurrentUser; // Useful if another script needs to update user state (less common)
-        window.logoutAndRedirect = logoutAndRedirect; // Expose the full logout flow
-        window.fetchWithAuth = fetchWithAuth; // Expose the shared authenticated fetch utility
-
+        window.setCurrentUser = setCurrentUser;
+        window.logoutAndRedirect = logoutAndRedirect;
+        window.fetchWithAuth = fetchWithAuth;
         console.log("[auth.js] Shared functions exposed globally.");
     } else {
         console.warn("[auth.js] Running in a non-browser environment, skipping global exposure.");
