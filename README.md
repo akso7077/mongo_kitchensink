@@ -81,13 +81,10 @@ A Spring Boot application demonstrating common backend features including user a
 
 ## Running Tests and Generating Coverage Report
 
-* To run all unit and integration tests and generate a code coverage report:
+* To run all unit and integration tests:
     ```bash
-    mvn clean verify
+    mvn test
     ```
-* After the command completes, open the generated JaCoCo coverage report in your web browser:
-    * Navigate to `<project_root>/target/site/jacoco/index.html`
-    * Open the `index.html` file.
 
 ## API Documentation
 
