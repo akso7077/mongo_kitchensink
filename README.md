@@ -1,5 +1,4 @@
 # mongo_kitchensink
-# Kitchen Sink Application
 
 A Spring Boot application demonstrating common backend features including user authentication, authorization, and basic CRUD operations, utilizing JWTs and MongoDB. This project serves as a practical example for learning and implementing core backend concepts.
 
